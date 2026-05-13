@@ -88,9 +88,6 @@ export class MainScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
 
-    this.physics.world.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-    this.cameras.main.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-    this.cameras.main.startFollow(this.player.gameObject, true, 0.1, 0.1);
   }
 
   update() {

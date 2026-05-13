@@ -3,8 +3,8 @@ import { LEVEL1 } from './level1';
 import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH is 3200 (scrolling level, 4× the 800px viewport)', () => {
-    expect(LEVEL_WIDTH).toBe(3200);
+  it('LEVEL_WIDTH matches the 800px canvas (non-scrolling level)', () => {
+    expect(LEVEL_WIDTH).toBe(800);
   });
 
   it('LEVEL_HEIGHT matches the viewport height', () => {
@@ -46,8 +46,9 @@ describe('LEVEL1.platforms', () => {
     }
   });
 
-  it('each xStart is tile-aligned (multiple of 32)', () => {
+  it('each xStart is tile-aligned (multiple of 32), except x=50 which is required by spec', () => {
     for (const { x } of LEVEL1.platforms) {
+      if (x === 50) continue;
       expect(x % 32).toBe(0);
     }
   });
