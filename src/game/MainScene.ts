@@ -14,7 +14,11 @@ export class MainScene extends Phaser.Scene {
   private enemies: Enemy[] = [];
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
+  private coinText!: Phaser.GameObjects.Text;
   private scoreManager!: ScoreManager;
+  private coinsCollected = 0;
+  private totalCoins = 0;
+  private levelComplete = false;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -65,6 +69,7 @@ export class MainScene extends Phaser.Scene {
 
     this.scoreManager = new ScoreManager();
 
+    this.totalCoins = LEVEL1.coins.length;
     this.coinGroup = this.physics.add.staticGroup();
     for (const { x, y } of LEVEL1.coins) {
       const coin = new Coin(this, x, y);
@@ -111,6 +116,21 @@ export class MainScene extends Phaser.Scene {
         if (coin && coin.collect()) {
           this.coinMap.delete(coinObj as Phaser.GameObjects.GameObject);
           this.scoreText.setText(`Score: ${this.scoreManager.addCoin()}`);
+          this.coinsCollected++;
+          this.coinText.setText(`Coins: ${this.coinsCollected}/${this.totalCoins}`);
+          if (this.coinsCollected === this.totalCoins) {
+            this.levelComplete = true;
+            this.physics.pause();
+            this.add
+              .text(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, 'Level Complete!', {
+                fontSize: '48px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 6,
+              })
+              .setOrigin(0.5)
+              .setScrollFactor(0);
+          }
         }
       },
     );
@@ -124,8 +144,17 @@ export class MainScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
 
+    this.coinText = this.add
+      .text(16, 40, `Coins: ${this.coinsCollected}/${this.totalCoins}`, {
+        fontSize: '20px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 4,
+      })
+      .setScrollFactor(0);
+
     this.add
-      .text(16, 44, 'Arrow keys / WASD: move / jump', {
+      .text(16, 64, 'Arrow keys / WASD: move / jump', {
         fontSize: '13px',
         color: '#ffffff',
         stroke: '#000000',
@@ -135,6 +164,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    if (this.levelComplete) return;
     this.player.update();
     for (const enemy of this.enemies) {
       enemy.update();
