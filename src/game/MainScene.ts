@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
+import { Player } from './Player';
 
 export class MainScene extends Phaser.Scene {
-  private player!: Phaser.Physics.Arcade.Sprite;
+  private player!: Player;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private coins!: Phaser.Physics.Arcade.StaticGroup;
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private scoreText!: Phaser.GameObjects.Text;
   private score = 0;
 
@@ -61,13 +61,11 @@ export class MainScene extends Phaser.Scene {
     this.coins.create(500, 315, 'coin');
     this.coins.create(680, 420, 'coin');
 
-    this.player = this.physics.add.sprite(80, 500, 'player');
-    this.player.setBounce(0.1);
-    this.player.setCollideWorldBounds(true);
+    this.player = new Player(this, 80, 500);
 
-    this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.player.gameObject, this.platforms);
     this.physics.add.overlap(
-      this.player,
+      this.player.gameObject,
       this.coins,
       (_player, coin) => {
         (coin as Phaser.Physics.Arcade.Image).destroy();
@@ -75,8 +73,6 @@ export class MainScene extends Phaser.Scene {
         this.scoreText.setText(`Score: ${this.score}`);
       },
     );
-
-    this.cursors = this.input.keyboard!.createCursorKeys();
 
     this.scoreText = this.add
       .text(16, 16, 'Score: 0', {
@@ -88,7 +84,7 @@ export class MainScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.add
-      .text(16, 44, 'Arrow keys: move / jump', {
+      .text(16, 44, 'Arrow keys / WASD: move / jump', {
         fontSize: '13px',
         color: '#ffffff',
         stroke: '#000000',
@@ -98,18 +94,6 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
-    const onGround = this.player.body!.blocked.down;
-
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-200);
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(200);
-    } else {
-      this.player.setVelocityX(0);
-    }
-
-    if ((this.cursors.up.isDown || this.cursors.space.isDown) && onGround) {
-      this.player.setVelocityY(-450);
-    }
+    this.player.update();
   }
 }
