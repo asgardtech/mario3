@@ -1,12 +1,15 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
-import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { Enemy } from './Enemy';
+import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y, ENEMY_STOMP_BOUNCE } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private coins!: Phaser.Physics.Arcade.StaticGroup;
+  private enemies: Enemy[] = [];
+  private enemyGroup!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
   private score = 0;
 
@@ -36,6 +39,11 @@ export class MainScene extends Phaser.Scene {
     g.fillCircle(12, 12, 12);
     g.generateTexture('coin', 24, 24);
 
+    g.clear();
+    g.fillStyle(0xff4444);
+    g.fillRect(0, 0, 28, 28);
+    g.generateTexture('enemy', 28, 28);
+
     g.destroy();
 
     this.add.rectangle(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, LEVEL_WIDTH, LEVEL_HEIGHT, 0x87ceeb);
@@ -57,9 +65,38 @@ export class MainScene extends Phaser.Scene {
       this.coins.create(x, y, 'coin');
     }
 
+    this.enemyGroup = this.physics.add.group();
+    for (const { x, y, patrolDistance } of LEVEL1.enemies) {
+      const enemy = new Enemy(this, x, y, patrolDistance);
+      this.enemies.push(enemy);
+      this.enemyGroup.add(enemy.gameObject);
+    }
+
     this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
     this.physics.add.collider(this.player.gameObject, this.platforms);
+    this.physics.add.collider(this.enemyGroup, this.platforms);
+
+    this.physics.add.overlap(
+      this.player.gameObject,
+      this.enemyGroup,
+      (playerObj, enemyObj) => {
+        const playerSprite = playerObj as Phaser.Physics.Arcade.Sprite;
+        const playerBody = playerSprite.body as Phaser.Physics.Arcade.Body;
+        const enemySprite = enemyObj as Phaser.Physics.Arcade.Sprite;
+
+        if (playerBody.velocity.y > 0) {
+          const enemy = this.enemies.find(e => e.gameObject === enemySprite);
+          if (enemy) {
+            enemy.stomp();
+            this.score += 100;
+            this.scoreText.setText(`Score: ${this.score}`);
+            playerSprite.setVelocityY(ENEMY_STOMP_BOUNCE);
+          }
+        }
+      },
+    );
+
     this.physics.add.overlap(
       this.player.gameObject,
       this.coins,
@@ -87,10 +124,12 @@ export class MainScene extends Phaser.Scene {
         strokeThickness: 3,
       })
       .setScrollFactor(0);
-
   }
 
   update() {
     this.player.update();
+    for (const enemy of this.enemies) {
+      enemy.update();
+    }
   }
 }

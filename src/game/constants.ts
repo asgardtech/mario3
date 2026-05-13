@@ -9,3 +9,6 @@ export const TILE_SIZE = 32;
 export const LEVEL_WIDTH = 800;
 export const LEVEL_HEIGHT = 600;
 export const GROUND_Y = 576;
+
+export const ENEMY_SPEED = 80;
+export const ENEMY_STOMP_BOUNCE = -300;
