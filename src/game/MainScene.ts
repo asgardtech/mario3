@@ -1,42 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
-
-// [xStart, xEnd, y] — tiles fill from xStart up to (but not including) xEnd, step 32
-export const PLATFORM_LAYOUT: Array<[number, number, number]> = [
-  // Section 1: easy opening
-  [192, 384, 448],
-  [512, 672, 352],
-  // Section 2: rising staircase
-  [832, 1024, 416],
-  [1088, 1280, 320],
-  [1344, 1472, 448],
-  // Section 3: high-low variation
-  [1600, 1760, 352],
-  [1856, 2016, 256],
-  [2080, 2240, 384],
-  // Section 4: final approach
-  [2368, 2528, 320],
-  [2624, 2784, 416],
-  [2880, 3040, 288],
-  [3104, 3168, 448],
-];
-
-// [x, y] coin positions — above the midpoint of each platform
-export const COIN_POSITIONS: Array<[number, number]> = [
-  [240, 416], [288, 416], [336, 416],
-  [560, 320], [608, 320], [656, 320],
-  [880, 384], [928, 384], [976, 384],
-  [1136, 288], [1184, 288], [1232, 288],
-  [1392, 416], [1440, 416],
-  [1648, 320], [1696, 320],
-  [1904, 224], [1952, 224], [2000, 224],
-  [2128, 352], [2176, 352],
-  [2416, 288], [2464, 288], [2512, 288],
-  [2672, 384], [2720, 384],
-  [2928, 256], [2976, 256], [3024, 256],
-  [3120, 416],
-];
+import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -83,18 +48,18 @@ export class MainScene extends Phaser.Scene {
       this.platforms.create(x, GROUND_Y, 'ground');
     }
 
-    for (const [xStart, xEnd, y] of PLATFORM_LAYOUT) {
-      for (let x = xStart; x < xEnd; x += 32) {
-        this.platforms.create(x, y, 'platform');
+    for (const { x: xStart, y, tileCount } of LEVEL1.platforms) {
+      for (let i = 0; i < tileCount; i++) {
+        this.platforms.create(xStart + i * 32, y, 'platform');
       }
     }
 
     this.coins = this.physics.add.staticGroup();
-    for (const [x, y] of COIN_POSITIONS) {
+    for (const { x, y } of LEVEL1.coins) {
       this.coins.create(x, y, 'coin');
     }
 
-    this.player = new Player(this, 80, 500);
+    this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
     this.physics.add.collider(this.player.gameObject, this.platforms);
     this.physics.add.overlap(

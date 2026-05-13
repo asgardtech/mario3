@@ -12,7 +12,7 @@ vi.mock('phaser', () => ({
   },
 }));
 
-import { PLATFORM_LAYOUT, COIN_POSITIONS } from './MainScene';
+import { LEVEL1 } from './levels/level1';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
 
 describe('level constants', () => {
@@ -30,57 +30,70 @@ describe('level constants', () => {
   });
 });
 
-describe('PLATFORM_LAYOUT', () => {
-  it('defines at least 8 platform groups', () => {
-    expect(PLATFORM_LAYOUT.length).toBeGreaterThanOrEqual(8);
+describe('LEVEL1.playerSpawn', () => {
+  it('is defined with numeric x and y', () => {
+    expect(typeof LEVEL1.playerSpawn.x).toBe('number');
+    expect(typeof LEVEL1.playerSpawn.y).toBe('number');
   });
 
-  it('each entry has [xStart, xEnd, y] with xStart < xEnd', () => {
-    for (const [xStart, xEnd] of PLATFORM_LAYOUT) {
-      expect(xStart).toBeLessThan(xEnd);
+  it('is above the ground and within level bounds', () => {
+    expect(LEVEL1.playerSpawn.y).toBeLessThan(GROUND_Y);
+    expect(LEVEL1.playerSpawn.x).toBeGreaterThanOrEqual(0);
+    expect(LEVEL1.playerSpawn.x).toBeLessThanOrEqual(LEVEL_WIDTH);
+  });
+});
+
+describe('LEVEL1.platforms', () => {
+  it('defines at least 8 platform groups', () => {
+    expect(LEVEL1.platforms.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('each entry has a positive tileCount', () => {
+    for (const { tileCount } of LEVEL1.platforms) {
+      expect(tileCount).toBeGreaterThan(0);
     }
   });
 
-  it('each platform xEnd is a multiple of 32 away from xStart (tile-aligned)', () => {
-    for (const [xStart, xEnd] of PLATFORM_LAYOUT) {
-      expect((xEnd - xStart) % 32).toBe(0);
+  it('each xStart is tile-aligned (multiple of 32)', () => {
+    for (const { x } of LEVEL1.platforms) {
+      expect(x % 32).toBe(0);
     }
   });
 
   it('all platforms are above the ground (y < GROUND_Y)', () => {
-    for (const [, , y] of PLATFORM_LAYOUT) {
+    for (const { y } of LEVEL1.platforms) {
       expect(y).toBeLessThan(GROUND_Y);
     }
   });
 
   it('all platforms are within the level width', () => {
-    for (const [xStart, xEnd] of PLATFORM_LAYOUT) {
-      expect(xStart).toBeGreaterThanOrEqual(0);
-      expect(xEnd).toBeLessThanOrEqual(LEVEL_WIDTH);
+    for (const { x, tileCount } of LEVEL1.platforms) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x + (tileCount - 1) * 32).toBeLessThanOrEqual(LEVEL_WIDTH);
     }
   });
 
   it('platforms span the full level (last platform ends near LEVEL_WIDTH)', () => {
-    const maxEnd = Math.max(...PLATFORM_LAYOUT.map(([, xEnd]) => xEnd));
+    const maxEnd = Math.max(...LEVEL1.platforms.map(({ x, tileCount }) => x + (tileCount - 1) * 32));
     expect(maxEnd).toBeGreaterThan(LEVEL_WIDTH * 0.9);
   });
 
   it('platforms cover all four quarters of the level', () => {
     const quarterWidth = LEVEL_WIDTH / 4;
     const sections = [0, 1, 2, 3].map(i =>
-      PLATFORM_LAYOUT.some(([xStart]) => xStart >= i * quarterWidth && xStart < (i + 1) * quarterWidth)
+      LEVEL1.platforms.some(({ x }) => x >= i * quarterWidth && x < (i + 1) * quarterWidth)
     );
     expect(sections.every(Boolean)).toBe(true);
   });
 });
 
-describe('COIN_POSITIONS', () => {
+describe('LEVEL1.coins', () => {
   it('defines at least 20 coins', () => {
-    expect(COIN_POSITIONS.length).toBeGreaterThanOrEqual(20);
+    expect(LEVEL1.coins.length).toBeGreaterThanOrEqual(20);
   });
 
   it('all coins are within level bounds', () => {
-    for (const [x, y] of COIN_POSITIONS) {
+    for (const { x, y } of LEVEL1.coins) {
       expect(x).toBeGreaterThanOrEqual(0);
       expect(x).toBeLessThanOrEqual(LEVEL_WIDTH);
       expect(y).toBeGreaterThan(0);
@@ -89,8 +102,8 @@ describe('COIN_POSITIONS', () => {
   });
 
   it('coins are distributed across both halves of the level', () => {
-    const firstHalf = COIN_POSITIONS.filter(([x]) => x < LEVEL_WIDTH / 2);
-    const secondHalf = COIN_POSITIONS.filter(([x]) => x >= LEVEL_WIDTH / 2);
+    const firstHalf = LEVEL1.coins.filter(({ x }) => x < LEVEL_WIDTH / 2);
+    const secondHalf = LEVEL1.coins.filter(({ x }) => x >= LEVEL_WIDTH / 2);
     expect(firstHalf.length).toBeGreaterThan(0);
     expect(secondHalf.length).toBeGreaterThan(0);
   });
