@@ -3,7 +3,15 @@ import { Player } from './Player';
 import { Enemy } from './Enemy';
 import { Coin } from './Coin';
 import { ScoreManager } from './ScoreManager';
-import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y, ENEMY_STOMP_BOUNCE } from './constants';
+import {
+  TILE_SIZE,
+  LEVEL_WIDTH,
+  LEVEL_HEIGHT,
+  GROUND_Y,
+  ENEMY_STOMP_BOUNCE,
+  PLAYER_LIVES,
+  INVINCIBILITY_DURATION,
+} from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
@@ -13,12 +21,12 @@ export class MainScene extends Phaser.Scene {
   private coinMap = new Map<Phaser.GameObjects.GameObject, Coin>();
   private enemies: Enemy[] = [];
   private enemyGroup!: Phaser.Physics.Arcade.Group;
-  private scoreText!: Phaser.GameObjects.Text;
-  private coinText!: Phaser.GameObjects.Text;
   private scoreManager!: ScoreManager;
   private coinsCollected = 0;
   private totalCoins = 0;
+  private lives = PLAYER_LIVES;
   private levelComplete = false;
+  private isInvincible = false;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -68,15 +76,21 @@ export class MainScene extends Phaser.Scene {
     }
 
     this.scoreManager = new ScoreManager();
+    this.coinsCollected = 0;
+    this.lives = PLAYER_LIVES;
+    this.levelComplete = false;
+    this.isInvincible = false;
 
     this.totalCoins = LEVEL1.coins.length;
     this.coinGroup = this.physics.add.staticGroup();
+    this.coinMap = new Map();
     for (const { x, y } of LEVEL1.coins) {
       const coin = new Coin(this, x, y);
       this.coinMap.set(coin.gameObject, coin);
       this.coinGroup.add(coin.gameObject);
     }
 
+    this.enemies = [];
     this.enemyGroup = this.physics.add.group();
     for (const { x, y, patrolDistance } of LEVEL1.enemies) {
       const enemy = new Enemy(this, x, y, patrolDistance);
@@ -86,6 +100,11 @@ export class MainScene extends Phaser.Scene {
 
     this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
+    this.registry.set('score', 0);
+    this.registry.set('lives', this.lives);
+    this.registry.set('coins', 0);
+    this.registry.set('totalCoins', this.totalCoins);
+
     this.physics.add.collider(this.player.gameObject, this.platforms);
     this.physics.add.collider(this.enemyGroup, this.platforms);
 
@@ -93,6 +112,8 @@ export class MainScene extends Phaser.Scene {
       this.player.gameObject,
       this.enemyGroup,
       (playerObj, enemyObj) => {
+        if (this.isInvincible || this.levelComplete) return;
+
         const playerSprite = playerObj as Phaser.Physics.Arcade.Sprite;
         const playerBody = playerSprite.body as Phaser.Physics.Arcade.Body;
         const enemySprite = enemyObj as Phaser.Physics.Arcade.Sprite;
@@ -101,9 +122,11 @@ export class MainScene extends Phaser.Scene {
           const enemy = this.enemies.find(e => e.gameObject === enemySprite);
           if (enemy) {
             enemy.stomp();
-            this.scoreText.setText(`Score: ${this.scoreManager.addStomp()}`);
+            this.registry.set('score', this.scoreManager.addStomp());
             playerSprite.setVelocityY(ENEMY_STOMP_BOUNCE);
           }
+        } else {
+          this.loseLife();
         }
       },
     );
@@ -112,55 +135,64 @@ export class MainScene extends Phaser.Scene {
       this.player.gameObject,
       this.coinGroup,
       (_player, coinObj) => {
+        if (this.levelComplete) return;
         const coin = this.coinMap.get(coinObj as Phaser.GameObjects.GameObject);
         if (coin && coin.collect()) {
           this.coinMap.delete(coinObj as Phaser.GameObjects.GameObject);
-          this.scoreText.setText(`Score: ${this.scoreManager.addCoin()}`);
           this.coinsCollected++;
-          this.coinText.setText(`Coins: ${this.coinsCollected}/${this.totalCoins}`);
+          this.registry.set('score', this.scoreManager.addCoin());
+          this.registry.set('coins', this.coinsCollected);
           if (this.coinsCollected === this.totalCoins) {
-            this.levelComplete = true;
-            this.physics.pause();
-            this.add
-              .text(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, 'Level Complete!', {
-                fontSize: '48px',
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 6,
-              })
-              .setOrigin(0.5)
-              .setScrollFactor(0);
+            this.completeLevel();
           }
         }
       },
     );
 
-    this.scoreText = this.add
-      .text(16, 16, `Score: ${this.scoreManager.score}`, {
-        fontSize: '20px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 4,
-      })
-      .setScrollFactor(0);
+    this.scene.launch('HUDScene');
+  }
 
-    this.coinText = this.add
-      .text(16, 40, `Coins: ${this.coinsCollected}/${this.totalCoins}`, {
-        fontSize: '20px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 4,
-      })
-      .setScrollFactor(0);
+  private loseLife(): void {
+    this.lives--;
+    this.isInvincible = true;
+    this.registry.set('lives', this.lives);
 
-    this.add
-      .text(16, 64, 'Arrow keys / WASD: move / jump', {
-        fontSize: '13px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 3,
-      })
-      .setScrollFactor(0);
+    if (this.lives <= 0) {
+      this.physics.pause();
+      this.scene.launch('GameOverScene', {
+        score: this.scoreManager.score,
+        coins: this.coinsCollected,
+        totalCoins: this.totalCoins,
+      });
+      return;
+    }
+
+    const body = this.player.gameObject.body as Phaser.Physics.Arcade.Body;
+    body.reset(LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
+
+    const flashCount = Math.floor(INVINCIBILITY_DURATION / 300);
+    this.tweens.add({
+      targets: this.player.gameObject,
+      alpha: 0,
+      duration: 150,
+      ease: 'Linear',
+      repeat: flashCount - 1,
+      yoyo: true,
+      onComplete: () => {
+        this.player.gameObject.setAlpha(1);
+        this.isInvincible = false;
+      },
+    });
+  }
+
+  private completeLevel(): void {
+    this.levelComplete = true;
+    this.physics.pause();
+    this.scene.launch('LevelCompleteScene', {
+      score: this.scoreManager.score,
+      coins: this.coinsCollected,
+      totalCoins: this.totalCoins,
+    });
   }
 
   update() {
@@ -168,6 +200,9 @@ export class MainScene extends Phaser.Scene {
     this.player.update();
     for (const enemy of this.enemies) {
       enemy.update();
+    }
+    if (!this.isInvincible && this.player.gameObject.y > LEVEL_HEIGHT + 100) {
+      this.loseLife();
     }
   }
 }

@@ -12,3 +12,6 @@ export const GROUND_Y = 576;
 
 export const ENEMY_SPEED = 80;
 export const ENEMY_STOMP_BOUNCE = -300;
+
+export const PLAYER_LIVES = 3;
+export const INVINCIBILITY_DURATION = 2000;

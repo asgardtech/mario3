@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { MainScene } from '@/game/MainScene';
+import { HUDScene } from '@/game/HUDScene';
+import { GameOverScene } from '@/game/GameOverScene';
+import { LevelCompleteScene } from '@/game/LevelCompleteScene';
 
 export function GameCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,7 +24,7 @@ export function GameCanvas() {
           debug: false,
         },
       },
-      scene: [MainScene],
+      scene: [MainScene, HUDScene, GameOverScene, LevelCompleteScene],
     };
 
     gameRef.current = new Phaser.Game(config);
