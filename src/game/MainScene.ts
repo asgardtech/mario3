@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
-import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
@@ -42,13 +42,13 @@ export class MainScene extends Phaser.Scene {
 
     this.platforms = this.physics.add.staticGroup();
 
-    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
+    for (let x = TILE_SIZE / 2; x < LEVEL_WIDTH; x += TILE_SIZE) {
       this.platforms.create(x, GROUND_Y, 'ground');
     }
 
     for (const { x: xStart, y, tileCount } of LEVEL1.platforms) {
       for (let i = 0; i < tileCount; i++) {
-        this.platforms.create(xStart + i * 32, y, 'platform');
+        this.platforms.create(xStart + i * TILE_SIZE, y, 'platform');
       }
     }
 

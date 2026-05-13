@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { LEVEL1 } from './level1';
-import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
+import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
   it('LEVEL_WIDTH matches the 800px viewport width', () => {
@@ -61,12 +61,12 @@ describe('LEVEL1.platforms', () => {
   it('all platforms are within the level width', () => {
     for (const { x, tileCount } of LEVEL1.platforms) {
       expect(x).toBeGreaterThanOrEqual(0);
-      expect(x + (tileCount - 1) * 32).toBeLessThanOrEqual(LEVEL_WIDTH);
+      expect(x + (tileCount - 1) * TILE_SIZE).toBeLessThanOrEqual(LEVEL_WIDTH);
     }
   });
 
   it('platforms span the full level (last platform ends near LEVEL_WIDTH)', () => {
-    const maxEnd = Math.max(...LEVEL1.platforms.map(({ x, tileCount }) => x + (tileCount - 1) * 32));
+    const maxEnd = Math.max(...LEVEL1.platforms.map(({ x, tileCount }) => x + (tileCount - 1) * TILE_SIZE));
     expect(maxEnd).toBeGreaterThan(LEVEL_WIDTH * 0.9);
   });
 
@@ -93,10 +93,15 @@ describe('LEVEL1.coins', () => {
     }
   });
 
-  it('every coin is exactly 32px above a platform (y + 32 matches a platform y)', () => {
-    const platformYs = new Set(LEVEL1.platforms.map(p => p.y));
+  it('every coin is exactly one tile above a platform and within its x-span', () => {
     for (const coin of LEVEL1.coins) {
-      expect(platformYs.has(coin.y + 32)).toBe(true);
+      const platform = LEVEL1.platforms.find(
+        p =>
+          p.y === coin.y + TILE_SIZE &&
+          coin.x >= p.x &&
+          coin.x <= p.x + (p.tileCount - 1) * TILE_SIZE,
+      );
+      expect(platform).toBeDefined();
     }
   });
 
@@ -111,11 +116,11 @@ describe('LEVEL1.coins', () => {
 describe('ground layout (derived from constants)', () => {
   it('ground tiles start at x=16 and span the full level width', () => {
     const tiles: number[] = [];
-    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
+    for (let x = TILE_SIZE / 2; x < LEVEL_WIDTH; x += TILE_SIZE) {
       tiles.push(x);
     }
-    expect(tiles[0]).toBe(16);
-    expect(tiles[tiles.length - 1]).toBe(LEVEL_WIDTH - 16);
-    expect(tiles.length).toBe(Math.floor(LEVEL_WIDTH / 32));
+    expect(tiles[0]).toBe(TILE_SIZE / 2);
+    expect(tiles[tiles.length - 1]).toBe(LEVEL_WIDTH - TILE_SIZE / 2);
+    expect(tiles.length).toBe(Math.floor(LEVEL_WIDTH / TILE_SIZE));
   });
 });
