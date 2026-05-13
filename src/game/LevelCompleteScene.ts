@@ -51,8 +51,9 @@ export class LevelCompleteScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.input.keyboard!.once('keydown-R', () => {
+    this.input.keyboard?.once('keydown-R', () => {
       this.scene.stop('HUDScene');
+      this.scene.stop(this.scene.key);
       this.scene.start('MainScene');
     });
   }

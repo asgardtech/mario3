@@ -24,13 +24,13 @@ export class HUDScene extends Phaser.Scene {
     });
 
     this.coinText = this.add
-      .text(LEVEL_WIDTH / 2, 16, `COINS: ${coins}/${totalCoins}`, {
+      .text(16, 42, `COINS: ${coins}/${totalCoins}`, {
         fontSize: '20px',
         color: '#ffd700',
         stroke: '#000000',
         strokeThickness: 4,
       })
-      .setOrigin(0.5, 0);
+      .setOrigin(0, 0);
 
     this.livesText = this.add
       .text(LEVEL_WIDTH - 16, 16, this.livesString(lives), {
@@ -41,7 +41,7 @@ export class HUDScene extends Phaser.Scene {
       })
       .setOrigin(1, 0);
 
-    this.add.text(16, 42, 'Arrow keys / WASD: move & jump', {
+    this.add.text(16, 68, 'Arrow keys / WASD: move & jump', {
       fontSize: '13px',
       color: '#cccccc',
       stroke: '#000000',

@@ -43,7 +43,7 @@ export class GameOverScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2 + 96, 'Press R to restart', {
+      .text(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2 + 96, 'Play Again  [R]', {
         fontSize: '24px',
         color: '#aaffaa',
         stroke: '#000000',
@@ -51,8 +51,9 @@ export class GameOverScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.input.keyboard!.once('keydown-R', () => {
+    this.input.keyboard?.once('keydown-R', () => {
       this.scene.stop('HUDScene');
+      this.scene.stop(this.scene.key);
       this.scene.start('MainScene');
     });
   }

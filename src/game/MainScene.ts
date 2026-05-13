@@ -9,7 +9,6 @@ import {
   LEVEL_HEIGHT,
   GROUND_Y,
   ENEMY_STOMP_BOUNCE,
-  PLAYER_LIVES,
   INVINCIBILITY_DURATION,
 } from './constants';
 import { LEVEL1 } from './levels/level1';
@@ -24,7 +23,6 @@ export class MainScene extends Phaser.Scene {
   private scoreManager!: ScoreManager;
   private coinsCollected = 0;
   private totalCoins = 0;
-  private lives = PLAYER_LIVES;
   private levelComplete = false;
   private isInvincible = false;
   private isDead = false;
@@ -78,7 +76,6 @@ export class MainScene extends Phaser.Scene {
 
     this.scoreManager = new ScoreManager();
     this.coinsCollected = 0;
-    this.lives = PLAYER_LIVES;
     this.levelComplete = false;
     this.isInvincible = false;
     this.isDead = false;
@@ -103,7 +100,7 @@ export class MainScene extends Phaser.Scene {
     this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
     this.registry.set('score', 0);
-    this.registry.set('lives', this.lives);
+    this.registry.set('lives', this.scoreManager.lives);
     this.registry.set('coins', 0);
     this.registry.set('totalCoins', this.totalCoins);
 
@@ -155,11 +152,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   private loseLife(): void {
-    this.lives--;
+    this.scoreManager.loseLife();
     this.isInvincible = true;
-    this.registry.set('lives', this.lives);
+    this.registry.set('lives', this.scoreManager.lives);
 
-    if (this.lives <= 0) {
+    if (!this.scoreManager.hasLives()) {
       this.isDead = true;
       this.physics.pause();
       this.scene.launch('GameOverScene', {
@@ -174,10 +171,11 @@ export class MainScene extends Phaser.Scene {
     body.reset(LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
     const flashCount = Math.floor(INVINCIBILITY_DURATION / 300);
+    const flashStep = Math.round(INVINCIBILITY_DURATION / (flashCount * 2));
     this.tweens.add({
       targets: this.player.gameObject,
       alpha: 0,
-      duration: 150,
+      duration: flashStep,
       ease: 'Linear',
       repeat: flashCount - 1,
       yoyo: true,
@@ -204,7 +202,7 @@ export class MainScene extends Phaser.Scene {
     for (const enemy of this.enemies) {
       enemy.update();
     }
-    if (!this.isInvincible && this.player.gameObject.y > LEVEL_HEIGHT + 100) {
+    if (!this.isInvincible && this.player.gameObject.y > LEVEL_HEIGHT + 64) {
       this.loseLife();
     }
   }
