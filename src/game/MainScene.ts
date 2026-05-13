@@ -1,17 +1,20 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
 import { Enemy } from './Enemy';
+import { Coin } from './Coin';
+import { ScoreManager } from './ScoreManager';
 import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y, ENEMY_STOMP_BOUNCE } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
-  private coins!: Phaser.Physics.Arcade.StaticGroup;
+  private coinGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private coinMap = new Map<Phaser.GameObjects.GameObject, Coin>();
   private enemies: Enemy[] = [];
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
-  private score = 0;
+  private scoreManager!: ScoreManager;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -60,9 +63,13 @@ export class MainScene extends Phaser.Scene {
       }
     }
 
-    this.coins = this.physics.add.staticGroup();
+    this.scoreManager = new ScoreManager();
+
+    this.coinGroup = this.physics.add.staticGroup();
     for (const { x, y } of LEVEL1.coins) {
-      this.coins.create(x, y, 'coin');
+      const coin = new Coin(this, x, y);
+      this.coinMap.set(coin.gameObject, coin);
+      this.coinGroup.add(coin.gameObject);
     }
 
     this.enemyGroup = this.physics.add.group();
@@ -89,8 +96,7 @@ export class MainScene extends Phaser.Scene {
           const enemy = this.enemies.find(e => e.gameObject === enemySprite);
           if (enemy) {
             enemy.stomp();
-            this.score += 100;
-            this.scoreText.setText(`Score: ${this.score}`);
+            this.scoreText.setText(`Score: ${this.scoreManager.addStomp()}`);
             playerSprite.setVelocityY(ENEMY_STOMP_BOUNCE);
           }
         }
@@ -99,16 +105,18 @@ export class MainScene extends Phaser.Scene {
 
     this.physics.add.overlap(
       this.player.gameObject,
-      this.coins,
-      (_player, coin) => {
-        (coin as Phaser.Physics.Arcade.Image).destroy();
-        this.score += 10;
-        this.scoreText.setText(`Score: ${this.score}`);
+      this.coinGroup,
+      (_player, coinObj) => {
+        const coin = this.coinMap.get(coinObj as Phaser.GameObjects.GameObject);
+        if (coin) {
+          coin.collect();
+          this.scoreText.setText(`Score: ${this.scoreManager.addCoin()}`);
+        }
       },
     );
 
     this.scoreText = this.add
-      .text(16, 16, 'Score: 0', {
+      .text(16, 16, `Score: ${this.scoreManager.score}`, {
         fontSize: '20px',
         color: '#ffffff',
         stroke: '#000000',
