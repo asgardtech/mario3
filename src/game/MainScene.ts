@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
-import { LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
@@ -38,11 +38,11 @@ export class MainScene extends Phaser.Scene {
 
     g.destroy();
 
-    this.add.rectangle(400, LEVEL_HEIGHT / 2, 800, LEVEL_HEIGHT, 0x87ceeb);
+    this.add.rectangle(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, LEVEL_WIDTH, LEVEL_HEIGHT, 0x87ceeb);
 
     this.platforms = this.physics.add.staticGroup();
 
-    for (let x = 16; x < 800; x += 32) {
+    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
       this.platforms.create(x, GROUND_Y, 'ground');
     }
 

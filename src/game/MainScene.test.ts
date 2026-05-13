@@ -3,7 +3,7 @@ import { LEVEL1 } from './levels/level1';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH equals the viewport width', () => {
+  it('LEVEL_WIDTH is 800 (matches the 800px canvas)', () => {
     expect(LEVEL_WIDTH).toBe(800);
   });
 
