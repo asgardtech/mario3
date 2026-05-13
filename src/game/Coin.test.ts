@@ -80,4 +80,17 @@ describe('Coin', () => {
     coin.collect();
     expect(coin.collected).toBe(true);
   });
+
+  it('collect() returns true on first call', () => {
+    const scene = makeScene(image);
+    const coin = new Coin(scene as never, 100, 200);
+    expect(coin.collect()).toBe(true);
+  });
+
+  it('collect() returns false on subsequent calls', () => {
+    const scene = makeScene(image);
+    const coin = new Coin(scene as never, 100, 200);
+    coin.collect();
+    expect(coin.collect()).toBe(false);
+  });
 });

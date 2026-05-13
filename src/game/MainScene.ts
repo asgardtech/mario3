@@ -108,8 +108,8 @@ export class MainScene extends Phaser.Scene {
       this.coinGroup,
       (_player, coinObj) => {
         const coin = this.coinMap.get(coinObj as Phaser.GameObjects.GameObject);
-        if (coin) {
-          coin.collect();
+        if (coin && coin.collect()) {
+          this.coinMap.delete(coinObj as Phaser.GameObjects.GameObject);
           this.scoreText.setText(`Score: ${this.scoreManager.addCoin()}`);
         }
       },

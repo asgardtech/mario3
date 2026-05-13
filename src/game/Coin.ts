@@ -16,9 +16,10 @@ export class Coin {
     return this._collected;
   }
 
-  collect(): void {
-    if (this._collected) return;
+  collect(): boolean {
+    if (this._collected) return false;
     this._collected = true;
     this.image.destroy();
+    return true;
   }
 }
