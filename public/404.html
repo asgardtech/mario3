@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // GitHub Pages SPA redirect: store the path and redirect to index.html
+      var path = window.location.pathname;
+      var base = "/mario3";
+      var rest = path.slice(base.length) || "/";
+      sessionStorage.setItem("spa-redirect", rest + window.location.search + window.location.hash);
+      window.location.replace(base + "/");
+    </script>
+  </head>
+  <body></body>
+</html>
