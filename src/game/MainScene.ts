@@ -1,5 +1,42 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
+import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+
+// [xStart, xEnd, y] — tiles fill from xStart up to (but not including) xEnd, step 32
+export const PLATFORM_LAYOUT: Array<[number, number, number]> = [
+  // Section 1: easy opening
+  [192, 384, 448],
+  [512, 672, 352],
+  // Section 2: rising staircase
+  [832, 1024, 416],
+  [1088, 1280, 320],
+  [1344, 1472, 448],
+  // Section 3: high-low variation
+  [1600, 1760, 352],
+  [1856, 2016, 256],
+  [2080, 2240, 384],
+  // Section 4: final approach
+  [2368, 2528, 320],
+  [2624, 2784, 416],
+  [2880, 3040, 288],
+  [3104, 3168, 448],
+];
+
+// [x, y] coin positions — above the midpoint of each platform
+export const COIN_POSITIONS: Array<[number, number]> = [
+  [240, 416], [288, 416], [336, 416],
+  [560, 320], [608, 320], [656, 320],
+  [880, 384], [928, 384], [976, 384],
+  [1136, 288], [1184, 288], [1232, 288],
+  [1392, 416], [1440, 416],
+  [1648, 320], [1696, 320],
+  [1904, 224], [1952, 224], [2000, 224],
+  [2128, 352], [2176, 352],
+  [2416, 288], [2464, 288], [2512, 288],
+  [2672, 384], [2720, 384],
+  [2928, 256], [2976, 256], [3024, 256],
+  [3120, 416],
+];
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -13,6 +50,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
+    this.physics.world.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+
     const g = this.make.graphics({ x: 0, y: 0, add: false });
 
     g.fillStyle(0x4169e1);
@@ -36,30 +75,24 @@ export class MainScene extends Phaser.Scene {
 
     g.destroy();
 
-    this.add.rectangle(400, 300, 800, 600, 0x87ceeb);
+    this.add.rectangle(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, LEVEL_WIDTH, LEVEL_HEIGHT, 0x87ceeb);
 
     this.platforms = this.physics.add.staticGroup();
 
-    for (let x = 16; x < 800; x += 32) {
-      this.platforms.create(x, 576, 'ground');
+    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
+      this.platforms.create(x, GROUND_Y, 'ground');
     }
-    for (let x = 50; x < 250; x += 32) {
-      this.platforms.create(x, 420, 'platform');
-    }
-    for (let x = 400; x < 600; x += 32) {
-      this.platforms.create(x, 350, 'platform');
-    }
-    for (let x = 625; x < 775; x += 32) {
-      this.platforms.create(x, 455, 'platform');
+
+    for (const [xStart, xEnd, y] of PLATFORM_LAYOUT) {
+      for (let x = xStart; x < xEnd; x += 32) {
+        this.platforms.create(x, y, 'platform');
+      }
     }
 
     this.coins = this.physics.add.staticGroup();
-    this.coins.create(100, 390, 'coin');
-    this.coins.create(150, 390, 'coin');
-    this.coins.create(200, 390, 'coin');
-    this.coins.create(450, 315, 'coin');
-    this.coins.create(500, 315, 'coin');
-    this.coins.create(680, 420, 'coin');
+    for (const [x, y] of COIN_POSITIONS) {
+      this.coins.create(x, y, 'coin');
+    }
 
     this.player = new Player(this, 80, 500);
 
@@ -73,6 +106,9 @@ export class MainScene extends Phaser.Scene {
         this.scoreText.setText(`Score: ${this.score}`);
       },
     );
+
+    this.cameras.main.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+    this.cameras.main.startFollow(this.player.gameObject, true, 0.1, 0.1);
 
     this.scoreText = this.add
       .text(16, 16, 'Score: 0', {
