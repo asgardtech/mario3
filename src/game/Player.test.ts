@@ -12,7 +12,19 @@ vi.mock('phaser', () => ({
   },
 }));
 
-import { Player, RUN_SPEED, JUMP_VELOCITY } from './Player';
+import { Player } from './Player';
+import {
+  PLAYER_SPEED,
+  PLAYER_JUMP_VELOCITY,
+  PLAYER_DRAG_X,
+  PLAYER_JUMP_HOLD_FRAMES,
+  PLAYER_JUMP_HOLD,
+  COYOTE_FRAMES,
+} from './constants';
+
+// Keep legacy aliases so existing assertion messages stay readable
+const RUN_SPEED = PLAYER_SPEED;
+const JUMP_VELOCITY = PLAYER_JUMP_VELOCITY;
 
 function makeKey(isDown = false) {
   return { isDown };
@@ -34,10 +46,13 @@ function makeSprite(onGround = true) {
   return {
     setBounce: vi.fn().mockReturnThis(),
     setCollideWorldBounds: vi.fn().mockReturnThis(),
+    setDragX: vi.fn().mockReturnThis(),
     setVelocityX: vi.fn().mockReturnThis(),
     setVelocityY: vi.fn().mockReturnThis(),
     setFlipX: vi.fn().mockReturnThis(),
-    body: { blocked: { down: onGround } },
+    body: {
+      blocked: { down: onGround },
+    },
   };
 }
 
@@ -96,6 +111,12 @@ describe('Player', () => {
     expect(sprite.setCollideWorldBounds).toHaveBeenCalledWith(true);
   });
 
+  it('sets dragX for friction-based deceleration', () => {
+    const scene = makeScene(sprite, cursors, wasd);
+    new Player(scene as never, 80, 500);
+    expect(sprite.setDragX).toHaveBeenCalledWith(PLAYER_DRAG_X);
+  });
+
   describe('run controls', () => {
     it('moves left at RUN_SPEED when left arrow is pressed', () => {
       cursors.left.isDown = true;
@@ -129,11 +150,11 @@ describe('Player', () => {
       expect(sprite.setVelocityX).toHaveBeenCalledWith(RUN_SPEED);
     });
 
-    it('stops when no horizontal key is pressed', () => {
+    it('does not snap velocity to zero when no horizontal key is pressed (drag handles deceleration)', () => {
       const scene = makeScene(sprite, cursors, wasd);
       const player = new Player(scene as never, 80, 500);
       player.update();
-      expect(sprite.setVelocityX).toHaveBeenCalledWith(0);
+      expect(sprite.setVelocityX).not.toHaveBeenCalled();
     });
 
     it('flips sprite left when moving left', () => {
@@ -190,6 +211,129 @@ describe('Player', () => {
     it('does not jump when no jump key is pressed', () => {
       const scene = makeScene(sprite, cursors, wasd);
       const player = new Player(scene as never, 80, 500);
+      player.update();
+      expect(sprite.setVelocityY).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('hold-to-extend jump', () => {
+    it('applies hold bonus on subsequent frames while jump key is held in air', () => {
+      cursors.up.isDown = true;
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // Frame 1: initial jump from ground
+      player.update();
+      expect(sprite.setVelocityY).toHaveBeenCalledWith(PLAYER_JUMP_VELOCITY);
+
+      // Now in the air
+      sprite.body.blocked.down = false;
+      sprite.setVelocityY.mockClear();
+
+      // Frame 2: first hold frame adds PLAYER_JUMP_HOLD to base
+      player.update();
+      expect(sprite.setVelocityY).toHaveBeenCalledWith(PLAYER_JUMP_VELOCITY + PLAYER_JUMP_HOLD);
+    });
+
+    it('accumulates hold bonus each frame up to PLAYER_JUMP_HOLD_FRAMES', () => {
+      cursors.up.isDown = true;
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // Initial jump
+      player.update();
+      sprite.body.blocked.down = false;
+
+      // Advance through all hold frames and verify the final accumulated velocity
+      for (let i = 1; i < PLAYER_JUMP_HOLD_FRAMES - 1; i++) {
+        player.update();
+      }
+      sprite.setVelocityY.mockClear();
+
+      // Last valid hold frame (jumpHoldFrames === PLAYER_JUMP_HOLD_FRAMES - 1)
+      player.update();
+      expect(sprite.setVelocityY).toHaveBeenCalledWith(
+        PLAYER_JUMP_VELOCITY + (PLAYER_JUMP_HOLD_FRAMES - 1) * PLAYER_JUMP_HOLD,
+      );
+    });
+
+    it('stops applying hold bonus after PLAYER_JUMP_HOLD_FRAMES frames', () => {
+      cursors.up.isDown = true;
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // Initial jump then exhaust all hold frames
+      player.update();
+      sprite.body.blocked.down = false;
+      for (let i = 0; i < PLAYER_JUMP_HOLD_FRAMES; i++) {
+        player.update();
+      }
+
+      // One more frame — hold frames exhausted, no velocity set
+      sprite.setVelocityY.mockClear();
+      player.update();
+      expect(sprite.setVelocityY).not.toHaveBeenCalled();
+    });
+
+    it('stops applying hold bonus when jump key is released', () => {
+      cursors.up.isDown = true;
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // Initial jump
+      player.update();
+      sprite.body.blocked.down = false;
+
+      // One hold frame
+      player.update();
+
+      // Release key
+      cursors.up.isDown = false;
+      sprite.setVelocityY.mockClear();
+      player.update();
+      expect(sprite.setVelocityY).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('coyote time', () => {
+    it('allows jumping within COYOTE_FRAMES frames after leaving the ground', () => {
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // One frame on ground (no jump) to populate coyote counter
+      player.update();
+
+      // Leave ground
+      sprite.body.blocked.down = false;
+
+      // Advance COYOTE_FRAMES - 1 frames without jumping (still within window)
+      for (let i = 0; i < COYOTE_FRAMES - 1; i++) {
+        player.update();
+      }
+
+      // Jump should still succeed
+      cursors.up.isDown = true;
+      sprite.setVelocityY.mockClear();
+      player.update();
+      expect(sprite.setVelocityY).toHaveBeenCalledWith(PLAYER_JUMP_VELOCITY);
+    });
+
+    it('does not allow jumping after COYOTE_FRAMES frames since leaving the ground', () => {
+      const scene = makeScene(sprite, cursors, wasd);
+      const player = new Player(scene as never, 80, 500);
+
+      // One frame on ground to populate coyote counter
+      player.update();
+
+      // Leave ground and exhaust all coyote frames
+      sprite.body.blocked.down = false;
+      for (let i = 0; i < COYOTE_FRAMES; i++) {
+        player.update();
+      }
+
+      // Jump attempt should fail
+      cursors.up.isDown = true;
+      sprite.setVelocityY.mockClear();
       player.update();
       expect(sprite.setVelocityY).not.toHaveBeenCalled();
     });
