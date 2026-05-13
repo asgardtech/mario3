@@ -1,17 +1,24 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
 import { Enemy } from './Enemy';
+import { Coin } from './Coin';
+import { ScoreManager } from './ScoreManager';
 import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y, ENEMY_STOMP_BOUNCE } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
-  private coins!: Phaser.Physics.Arcade.StaticGroup;
+  private coinGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private coinMap = new Map<Phaser.GameObjects.GameObject, Coin>();
   private enemies: Enemy[] = [];
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
-  private score = 0;
+  private coinText!: Phaser.GameObjects.Text;
+  private scoreManager!: ScoreManager;
+  private coinsCollected = 0;
+  private totalCoins = 0;
+  private levelComplete = false;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -60,9 +67,14 @@ export class MainScene extends Phaser.Scene {
       }
     }
 
-    this.coins = this.physics.add.staticGroup();
+    this.scoreManager = new ScoreManager();
+
+    this.totalCoins = LEVEL1.coins.length;
+    this.coinGroup = this.physics.add.staticGroup();
     for (const { x, y } of LEVEL1.coins) {
-      this.coins.create(x, y, 'coin');
+      const coin = new Coin(this, x, y);
+      this.coinMap.set(coin.gameObject, coin);
+      this.coinGroup.add(coin.gameObject);
     }
 
     this.enemyGroup = this.physics.add.group();
@@ -89,8 +101,7 @@ export class MainScene extends Phaser.Scene {
           const enemy = this.enemies.find(e => e.gameObject === enemySprite);
           if (enemy) {
             enemy.stomp();
-            this.score += 100;
-            this.scoreText.setText(`Score: ${this.score}`);
+            this.scoreText.setText(`Score: ${this.scoreManager.addStomp()}`);
             playerSprite.setVelocityY(ENEMY_STOMP_BOUNCE);
           }
         }
@@ -99,16 +110,42 @@ export class MainScene extends Phaser.Scene {
 
     this.physics.add.overlap(
       this.player.gameObject,
-      this.coins,
-      (_player, coin) => {
-        (coin as Phaser.Physics.Arcade.Image).destroy();
-        this.score += 10;
-        this.scoreText.setText(`Score: ${this.score}`);
+      this.coinGroup,
+      (_player, coinObj) => {
+        const coin = this.coinMap.get(coinObj as Phaser.GameObjects.GameObject);
+        if (coin && coin.collect()) {
+          this.coinMap.delete(coinObj as Phaser.GameObjects.GameObject);
+          this.scoreText.setText(`Score: ${this.scoreManager.addCoin()}`);
+          this.coinsCollected++;
+          this.coinText.setText(`Coins: ${this.coinsCollected}/${this.totalCoins}`);
+          if (this.coinsCollected === this.totalCoins) {
+            this.levelComplete = true;
+            this.physics.pause();
+            this.add
+              .text(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, 'Level Complete!', {
+                fontSize: '48px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 6,
+              })
+              .setOrigin(0.5)
+              .setScrollFactor(0);
+          }
+        }
       },
     );
 
     this.scoreText = this.add
-      .text(16, 16, 'Score: 0', {
+      .text(16, 16, `Score: ${this.scoreManager.score}`, {
+        fontSize: '20px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 4,
+      })
+      .setScrollFactor(0);
+
+    this.coinText = this.add
+      .text(16, 40, `Coins: ${this.coinsCollected}/${this.totalCoins}`, {
         fontSize: '20px',
         color: '#ffffff',
         stroke: '#000000',
@@ -117,7 +154,7 @@ export class MainScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.add
-      .text(16, 44, 'Arrow keys / WASD: move / jump', {
+      .text(16, 64, 'Arrow keys / WASD: move / jump', {
         fontSize: '13px',
         color: '#ffffff',
         stroke: '#000000',
@@ -127,6 +164,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    if (this.levelComplete) return;
     this.player.update();
     for (const enemy of this.enemies) {
       enemy.update();
