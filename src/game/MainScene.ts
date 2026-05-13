@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
+import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -36,32 +38,26 @@ export class MainScene extends Phaser.Scene {
 
     g.destroy();
 
-    this.add.rectangle(400, 300, 800, 600, 0x87ceeb);
+    this.add.rectangle(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, LEVEL_WIDTH, LEVEL_HEIGHT, 0x87ceeb);
 
     this.platforms = this.physics.add.staticGroup();
 
-    for (let x = 16; x < 800; x += 32) {
-      this.platforms.create(x, 576, 'ground');
+    for (let x = TILE_SIZE / 2; x < LEVEL_WIDTH; x += TILE_SIZE) {
+      this.platforms.create(x, GROUND_Y, 'ground');
     }
-    for (let x = 50; x < 250; x += 32) {
-      this.platforms.create(x, 420, 'platform');
-    }
-    for (let x = 400; x < 600; x += 32) {
-      this.platforms.create(x, 350, 'platform');
-    }
-    for (let x = 625; x < 775; x += 32) {
-      this.platforms.create(x, 455, 'platform');
+
+    for (const { x: xStart, y, tileCount } of LEVEL1.platforms) {
+      for (let i = 0; i < tileCount; i++) {
+        this.platforms.create(xStart + i * TILE_SIZE, y, 'platform');
+      }
     }
 
     this.coins = this.physics.add.staticGroup();
-    this.coins.create(100, 390, 'coin');
-    this.coins.create(150, 390, 'coin');
-    this.coins.create(200, 390, 'coin');
-    this.coins.create(450, 315, 'coin');
-    this.coins.create(500, 315, 'coin');
-    this.coins.create(680, 420, 'coin');
+    for (const { x, y } of LEVEL1.coins) {
+      this.coins.create(x, y, 'coin');
+    }
 
-    this.player = new Player(this, 80, 500);
+    this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
     this.physics.add.collider(this.player.gameObject, this.platforms);
     this.physics.add.overlap(
@@ -91,6 +87,7 @@ export class MainScene extends Phaser.Scene {
         strokeThickness: 3,
       })
       .setScrollFactor(0);
+
   }
 
   update() {
