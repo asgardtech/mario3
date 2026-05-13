@@ -3,8 +3,8 @@ import { LEVEL1 } from './level1';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH is wider than the 800px viewport (enables horizontal scrolling)', () => {
-    expect(LEVEL_WIDTH).toBeGreaterThan(800);
+  it('LEVEL_WIDTH matches the 800px viewport width', () => {
+    expect(LEVEL_WIDTH).toBe(800);
   });
 
   it('LEVEL_HEIGHT matches the viewport height', () => {
