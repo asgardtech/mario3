@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { LEVEL1 } from './levels/level1';
-import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { LEVEL1 } from './level1';
+import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
   it('LEVEL_WIDTH is 800 (matches the 800px canvas)', () => {
@@ -110,18 +110,13 @@ describe('LEVEL1.coins', () => {
 });
 
 describe('ground layout (derived from constants)', () => {
-  it('ground contains exactly Math.floor(LEVEL_WIDTH / 32) tiles', () => {
-    const expectedCount = Math.floor(LEVEL_WIDTH / 32);
-    expect(expectedCount).toBe(25);
-  });
-
-  it('ground tiles span x=16 to x=784', () => {
+  it('ground tiles span x=16 to x=784 with exactly Math.floor(LEVEL_WIDTH / 32) tiles', () => {
     const tiles: number[] = [];
     for (let x = 16; x < LEVEL_WIDTH; x += 32) {
       tiles.push(x);
     }
     expect(tiles[0]).toBe(16);
     expect(tiles[tiles.length - 1]).toBe(784);
-    expect(tiles.length).toBe(25);
+    expect(tiles.length).toBe(Math.floor(LEVEL_WIDTH / 32));
   });
 });
