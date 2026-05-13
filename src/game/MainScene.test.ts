@@ -1,23 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-
-vi.mock('phaser', () => ({
-  default: {
-    AUTO: 1,
-    Scene: class {},
-    Input: {
-      Keyboard: {
-        KeyCodes: { W: 87, A: 65, D: 68 },
-      },
-    },
-  },
-}));
-
+import { describe, it, expect } from 'vitest';
 import { LEVEL1 } from './levels/level1';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH is wider than the viewport', () => {
-    expect(LEVEL_WIDTH).toBeGreaterThan(800);
+  it('LEVEL_WIDTH equals the viewport width', () => {
+    expect(LEVEL_WIDTH).toBe(800);
   });
 
   it('LEVEL_HEIGHT matches the viewport height', () => {

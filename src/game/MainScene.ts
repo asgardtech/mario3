@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
-import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from './constants';
+import { LEVEL_HEIGHT, GROUND_Y } from './constants';
 import { LEVEL1 } from './levels/level1';
 
 export class MainScene extends Phaser.Scene {
@@ -15,8 +15,6 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    this.physics.world.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-
     const g = this.make.graphics({ x: 0, y: 0, add: false });
 
     g.fillStyle(0x4169e1);
@@ -40,11 +38,11 @@ export class MainScene extends Phaser.Scene {
 
     g.destroy();
 
-    this.add.rectangle(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2, LEVEL_WIDTH, LEVEL_HEIGHT, 0x87ceeb);
+    this.add.rectangle(400, LEVEL_HEIGHT / 2, 800, LEVEL_HEIGHT, 0x87ceeb);
 
     this.platforms = this.physics.add.staticGroup();
 
-    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
+    for (let x = 16; x < 800; x += 32) {
       this.platforms.create(x, GROUND_Y, 'ground');
     }
 
@@ -71,9 +69,6 @@ export class MainScene extends Phaser.Scene {
         this.scoreText.setText(`Score: ${this.score}`);
       },
     );
-
-    this.cameras.main.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-    this.cameras.main.startFollow(this.player.gameObject, true, 0.1, 0.1);
 
     this.scoreText = this.add
       .text(16, 16, 'Score: 0', {
