@@ -71,6 +71,6 @@ export class HUDScene extends Phaser.Scene {
   }
 
   private livesString(lives: number): string {
-    return lives > 0 ? Array(lives).fill('♥').join(' ') : '♥';
+    return lives > 0 ? Array(lives).fill('♥').join(' ') : '';
   }
 }

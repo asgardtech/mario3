@@ -27,6 +27,7 @@ export class MainScene extends Phaser.Scene {
   private lives = PLAYER_LIVES;
   private levelComplete = false;
   private isInvincible = false;
+  private isDead = false;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -80,6 +81,7 @@ export class MainScene extends Phaser.Scene {
     this.lives = PLAYER_LIVES;
     this.levelComplete = false;
     this.isInvincible = false;
+    this.isDead = false;
 
     this.totalCoins = LEVEL1.coins.length;
     this.coinGroup = this.physics.add.staticGroup();
@@ -158,6 +160,7 @@ export class MainScene extends Phaser.Scene {
     this.registry.set('lives', this.lives);
 
     if (this.lives <= 0) {
+      this.isDead = true;
       this.physics.pause();
       this.scene.launch('GameOverScene', {
         score: this.scoreManager.score,
@@ -196,7 +199,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.levelComplete) return;
+    if (this.levelComplete || this.isDead) return;
     this.player.update();
     for (const enemy of this.enemies) {
       enemy.update();
