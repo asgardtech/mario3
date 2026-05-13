@@ -12,9 +12,10 @@ vi.mock('phaser', () => ({
   },
 }));
 
-vi.mock('@/game/MainScene', () => ({
-  MainScene: class {},
-}));
+vi.mock('@/game/MainScene', () => ({ MainScene: class {} }));
+vi.mock('@/game/HUDScene', () => ({ HUDScene: class {} }));
+vi.mock('@/game/GameOverScene', () => ({ GameOverScene: class {} }));
+vi.mock('@/game/LevelCompleteScene', () => ({ LevelCompleteScene: class {} }));
 
 import Phaser from 'phaser';
 import { GameCanvas } from './GameCanvas';
@@ -82,7 +83,9 @@ describe('GameCanvas', () => {
   it('includes MainScene in the Phaser scene list', () => {
     mount();
     const config = vi.mocked(Phaser.Game).mock.calls[0][0] as Phaser.Types.Core.GameConfig;
-    expect((config.scene as unknown[]).length).toBe(1);
+    const scenes = config.scene as unknown[];
+    expect(scenes.length).toBe(4);
+    expect(scenes[0]).toBeDefined(); // MainScene is first
   });
 
   it('passes the container div as the Phaser parent element', () => {
