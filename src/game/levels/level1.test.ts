@@ -114,6 +114,33 @@ describe('LEVEL1.coins', () => {
   });
 });
 
+describe('LEVEL1.enemies', () => {
+  it('defines at least one enemy', () => {
+    expect(LEVEL1.enemies.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('each enemy has a positive patrolDistance', () => {
+    for (const { patrolDistance } of LEVEL1.enemies) {
+      expect(patrolDistance).toBeGreaterThan(0);
+    }
+  });
+
+  it('all enemies are within level bounds', () => {
+    for (const { x, y } of LEVEL1.enemies) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(LEVEL_WIDTH);
+      expect(y).toBeGreaterThan(0);
+      expect(y).toBeLessThan(GROUND_Y);
+    }
+  });
+
+  it('enemy patrol range stays within level width', () => {
+    for (const { x, patrolDistance } of LEVEL1.enemies) {
+      expect(x + patrolDistance).toBeLessThanOrEqual(LEVEL_WIDTH);
+    }
+  });
+});
+
 describe('ground layout (derived from constants)', () => {
   it('ground tiles start at x=16 and span the full level width', () => {
     const tiles: number[] = [];

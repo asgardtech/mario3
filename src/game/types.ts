@@ -9,8 +9,15 @@ export interface Coin {
   y: number;
 }
 
+export interface EnemySpawn {
+  x: number;
+  y: number;
+  patrolDistance: number;
+}
+
 export interface LevelData {
   playerSpawn: { x: number; y: number };
   platforms: Platform[];
   coins: Coin[];
+  enemies: EnemySpawn[];
 }

@@ -2,6 +2,16 @@ import type { LevelData } from '../types';
 
 export const LEVEL1: LevelData = {
   playerSpawn: { x: 80, y: 500 },
+  enemies: [
+    // On platform { x: 128, y: 320, tileCount: 3 } — top=310, enemy.y=296, patrol to x=192
+    { x: 128, y: 296, patrolDistance: 64 },
+    // On platform { x: 288, y: 288, tileCount: 4 } — top=278, enemy.y=264, patrol to x=384
+    { x: 288, y: 264, patrolDistance: 96 },
+    // On platform { x: 480, y: 256, tileCount: 4 } — top=246, enemy.y=232, patrol to x=576
+    { x: 480, y: 232, patrolDistance: 96 },
+    // On ground (GROUND_Y=576) — ground top=560, enemy.y=546, patrol x=200..328
+    { x: 200, y: 546, patrolDistance: 128 },
+  ],
   platforms: [
     // Quarter 0 (x: 0–199)
     { x: 50,  y: 420, tileCount: 7 }, // required by spec (x=50 is not tile-aligned by design)
