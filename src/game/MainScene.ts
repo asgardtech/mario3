@@ -70,7 +70,7 @@ export class MainScene extends Phaser.Scene {
       this.player,
       this.coins,
       (_player, coin) => {
-        (coin as Phaser.Physics.Arcade.Sprite).destroy();
+        (coin as Phaser.Physics.Arcade.Image).destroy();
         this.score += 10;
         this.scoreText.setText(`Score: ${this.score}`);
       },

@@ -32,5 +32,5 @@ export function GameCanvas() {
     };
   }, []);
 
-  return <div ref={containerRef} style={{ width: 800, height: 600 }} />;
+  return <div id="phaser-container" ref={containerRef} style={{ width: 800, height: 600 }} />;
 }
