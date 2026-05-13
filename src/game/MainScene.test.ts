@@ -23,6 +23,11 @@ describe('LEVEL1.playerSpawn', () => {
     expect(typeof LEVEL1.playerSpawn.y).toBe('number');
   });
 
+  it('is at exactly (80, 500)', () => {
+    expect(LEVEL1.playerSpawn.x).toBe(80);
+    expect(LEVEL1.playerSpawn.y).toBe(500);
+  });
+
   it('is above the ground and within level bounds', () => {
     expect(LEVEL1.playerSpawn.y).toBeLessThan(GROUND_Y);
     expect(LEVEL1.playerSpawn.x).toBeGreaterThanOrEqual(0);
@@ -40,6 +45,7 @@ describe('LEVEL1.platforms', () => {
       expect(tileCount).toBeGreaterThan(0);
     }
   });
+
 
   it('each xStart is tile-aligned (multiple of 32)', () => {
     for (const { x } of LEVEL1.platforms) {
@@ -88,10 +94,34 @@ describe('LEVEL1.coins', () => {
     }
   });
 
+  it('every coin is exactly 32px above a platform (y + 32 matches a platform y)', () => {
+    const platformYs = new Set(LEVEL1.platforms.map(p => p.y));
+    for (const coin of LEVEL1.coins) {
+      expect(platformYs.has(coin.y + 32)).toBe(true);
+    }
+  });
+
   it('coins are distributed across both halves of the level', () => {
     const firstHalf = LEVEL1.coins.filter(({ x }) => x < LEVEL_WIDTH / 2);
     const secondHalf = LEVEL1.coins.filter(({ x }) => x >= LEVEL_WIDTH / 2);
     expect(firstHalf.length).toBeGreaterThan(0);
     expect(secondHalf.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ground layout (derived from constants)', () => {
+  it('ground contains exactly Math.floor(LEVEL_WIDTH / 32) tiles', () => {
+    const expectedCount = Math.floor(LEVEL_WIDTH / 32);
+    expect(expectedCount).toBe(25);
+  });
+
+  it('ground tiles span x=16 to x=784', () => {
+    const tiles: number[] = [];
+    for (let x = 16; x < LEVEL_WIDTH; x += 32) {
+      tiles.push(x);
+    }
+    expect(tiles[0]).toBe(16);
+    expect(tiles[tiles.length - 1]).toBe(784);
+    expect(tiles.length).toBe(25);
   });
 });

@@ -1,4 +1,6 @@
-export const LEVEL1 = {
+import type { LevelData } from '../types';
+
+export const LEVEL1: LevelData = {
   playerSpawn: { x: 80, y: 500 },
   platforms: [
     // Section 1 (x: 0–200)
