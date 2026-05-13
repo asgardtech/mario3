@@ -3,8 +3,8 @@ import { LEVEL1 } from './level1';
 import { TILE_SIZE, LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH matches the 800px viewport width', () => {
-    expect(LEVEL_WIDTH).toBe(800);
+  it('LEVEL_WIDTH is 3200 (scrolling level, 4× the 800px viewport)', () => {
+    expect(LEVEL_WIDTH).toBe(3200);
   });
 
   it('LEVEL_HEIGHT matches the viewport height', () => {

@@ -3,39 +3,39 @@ import type { LevelData } from '../types';
 export const LEVEL1: LevelData = {
   playerSpawn: { x: 80, y: 500 },
   platforms: [
-    // Q1 (x: 0–199)
-    { x: 64,  y: 448, tileCount: 3 },
-    { x: 128, y: 352, tileCount: 2 },
-    { x: 192, y: 416, tileCount: 3 },
-    // Q2 (x: 200–399)
-    { x: 256, y: 288, tileCount: 3 },
-    { x: 320, y: 448, tileCount: 2 },
-    { x: 352, y: 352, tileCount: 3 },
-    // Q3 (x: 400–599)
-    { x: 416, y: 416, tileCount: 2 },
-    { x: 480, y: 256, tileCount: 3 },
-    { x: 544, y: 352, tileCount: 3 },
-    // Q4 (x: 600–799)
-    { x: 608, y: 448, tileCount: 2 },
-    { x: 672, y: 320, tileCount: 3 },
-    { x: 736, y: 384, tileCount: 2 },
+    // Section 1 (x: 0–799)
+    { x: 192,  y: 448, tileCount: 4 },
+    { x: 448,  y: 352, tileCount: 3 },
+    { x: 640,  y: 416, tileCount: 3 },
+    // Section 2 (x: 800–1599)
+    { x: 832,  y: 288, tileCount: 4 },
+    { x: 1056, y: 448, tileCount: 3 },
+    { x: 1312, y: 352, tileCount: 4 },
+    // Section 3 (x: 1600–2399)
+    { x: 1600, y: 416, tileCount: 3 },
+    { x: 1856, y: 256, tileCount: 5 },
+    { x: 2144, y: 352, tileCount: 4 },
+    // Section 4 (x: 2400–3199)
+    { x: 2432, y: 448, tileCount: 3 },
+    { x: 2720, y: 320, tileCount: 4 },
+    { x: 3040, y: 384, tileCount: 4 },
   ],
   coins: [
-    // Above Q1 platforms (coin.y = platform.y - 32)
-    { x: 64,  y: 416 }, { x: 96,  y: 416 }, { x: 128, y: 416 },
-    { x: 128, y: 320 }, { x: 160, y: 320 },
-    { x: 192, y: 384 }, { x: 224, y: 384 }, { x: 256, y: 384 },
-    // Above Q2 platforms
-    { x: 256, y: 256 }, { x: 288, y: 256 }, { x: 320, y: 256 },
-    { x: 320, y: 416 }, { x: 352, y: 416 },
-    { x: 352, y: 320 }, { x: 384, y: 320 }, { x: 416, y: 320 },
-    // Above Q3 platforms
-    { x: 416, y: 384 }, { x: 448, y: 384 },
-    { x: 480, y: 224 }, { x: 512, y: 224 }, { x: 544, y: 224 },
-    { x: 544, y: 320 }, { x: 576, y: 320 }, { x: 608, y: 320 },
-    // Above Q4 platforms
-    { x: 608, y: 416 }, { x: 640, y: 416 },
-    { x: 672, y: 288 }, { x: 704, y: 288 }, { x: 736, y: 288 },
-    { x: 736, y: 352 }, { x: 768, y: 352 },
+    // Above section 1 platforms (coin.y = platform.y - 32)
+    { x: 192, y: 416 }, { x: 224, y: 416 }, { x: 256, y: 416 },
+    { x: 448, y: 320 }, { x: 480, y: 320 }, { x: 512, y: 320 },
+    { x: 640, y: 384 }, { x: 672, y: 384 }, { x: 704, y: 384 },
+    // Above section 2 platforms
+    { x: 832,  y: 256 }, { x: 864,  y: 256 }, { x: 896,  y: 256 },
+    { x: 1056, y: 416 }, { x: 1088, y: 416 }, { x: 1120, y: 416 },
+    { x: 1312, y: 320 }, { x: 1344, y: 320 }, { x: 1376, y: 320 },
+    // Above section 3 platforms
+    { x: 1600, y: 384 }, { x: 1632, y: 384 }, { x: 1664, y: 384 },
+    { x: 1856, y: 224 }, { x: 1888, y: 224 }, { x: 1920, y: 224 },
+    { x: 2144, y: 320 }, { x: 2176, y: 320 }, { x: 2208, y: 320 },
+    // Above section 4 platforms
+    { x: 2432, y: 416 }, { x: 2464, y: 416 }, { x: 2496, y: 416 },
+    { x: 2720, y: 288 }, { x: 2752, y: 288 }, { x: 2784, y: 288 },
+    { x: 3040, y: 352 }, { x: 3072, y: 352 }, { x: 3104, y: 352 },
   ],
 };
