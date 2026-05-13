@@ -59,6 +59,10 @@ export class MainScene extends Phaser.Scene {
 
     this.player = new Player(this, LEVEL1.playerSpawn.x, LEVEL1.playerSpawn.y);
 
+    this.physics.world.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+    this.cameras.main.setBounds(0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+    this.cameras.main.startFollow(this.player.gameObject, true, 0.1, 0.1);
+
     this.physics.add.collider(this.player.gameObject, this.platforms);
     this.physics.add.overlap(
       this.player.gameObject,

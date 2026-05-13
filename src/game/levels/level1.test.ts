@@ -3,8 +3,8 @@ import { LEVEL1 } from './level1';
 import { LEVEL_WIDTH, LEVEL_HEIGHT, GROUND_Y } from '../constants';
 
 describe('level constants', () => {
-  it('LEVEL_WIDTH is 800 (matches the 800px canvas)', () => {
-    expect(LEVEL_WIDTH).toBe(800);
+  it('LEVEL_WIDTH is wider than the 800px viewport (enables horizontal scrolling)', () => {
+    expect(LEVEL_WIDTH).toBeGreaterThan(800);
   });
 
   it('LEVEL_HEIGHT matches the viewport height', () => {
@@ -36,8 +36,8 @@ describe('LEVEL1.playerSpawn', () => {
 });
 
 describe('LEVEL1.platforms', () => {
-  it('defines at least 8 platform groups', () => {
-    expect(LEVEL1.platforms.length).toBeGreaterThanOrEqual(8);
+  it('defines at least 12 platform groups', () => {
+    expect(LEVEL1.platforms.length).toBeGreaterThanOrEqual(12);
   });
 
   it('each entry has a positive tileCount', () => {
@@ -45,7 +45,6 @@ describe('LEVEL1.platforms', () => {
       expect(tileCount).toBeGreaterThan(0);
     }
   });
-
 
   it('each xStart is tile-aligned (multiple of 32)', () => {
     for (const { x } of LEVEL1.platforms) {
@@ -81,8 +80,8 @@ describe('LEVEL1.platforms', () => {
 });
 
 describe('LEVEL1.coins', () => {
-  it('defines at least 20 coins', () => {
-    expect(LEVEL1.coins.length).toBeGreaterThanOrEqual(20);
+  it('defines at least 30 coins', () => {
+    expect(LEVEL1.coins.length).toBeGreaterThanOrEqual(30);
   });
 
   it('all coins are within level bounds', () => {
@@ -110,13 +109,13 @@ describe('LEVEL1.coins', () => {
 });
 
 describe('ground layout (derived from constants)', () => {
-  it('ground tiles span x=16 to x=784 with exactly Math.floor(LEVEL_WIDTH / 32) tiles', () => {
+  it('ground tiles start at x=16 and span the full level width', () => {
     const tiles: number[] = [];
     for (let x = 16; x < LEVEL_WIDTH; x += 32) {
       tiles.push(x);
     }
     expect(tiles[0]).toBe(16);
-    expect(tiles[tiles.length - 1]).toBe(784);
+    expect(tiles[tiles.length - 1]).toBe(LEVEL_WIDTH - 16);
     expect(tiles.length).toBe(Math.floor(LEVEL_WIDTH / 32));
   });
 });
